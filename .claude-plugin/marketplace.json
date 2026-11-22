@@ -1,0 +1,5 @@
+{
+  "name": "work-priorities",
+  "owner": { "name": "mbarbary2212" },
+  "plugins": [{ "name": "work-priorities", "source": "./" }]
+}
