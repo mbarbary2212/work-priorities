@@ -15,7 +15,8 @@ const items = atom({ plugin: 'work-priorities', key: 'items' } as const, [], {
 // A new list starts empty.
 const SEED: Reminder[] = []
 
-const DOT: Record<ReminderColor, string> = { red: '🔴', yellow: '🟡' }
+// Parked items are marked in words, not with coloured dots.
+const tag = (one: Reminder): string => (one.color === 'yellow' ? ' (waiting)' : '')
 
 function isReminder(value: unknown): value is Reminder {
   if (typeof value !== 'object' || value === null) return false
@@ -61,7 +62,7 @@ function asText(list: readonly Reminder[]): string {
   if (list.length === 0) return 'No open work. Everything is done.'
 
   return sorted(list)
-    .map(one => `${DOT[one.color]} #${one.id} ${one.project}: ${one.title}. Next: ${one.next}`)
+    .map(one => `#${one.id} ${one.project}: ${one.title}${tag(one)}. Next: ${one.next}`)
     .join('\n')
 }
 
@@ -153,7 +154,7 @@ export const register: Register = on => {
       }
       await save($, [...list, one])
 
-      return { result: `Added ${DOT[one.color]} #${one.id} ${one.project}: ${one.title}.` }
+      return { result: `Added #${one.id} ${one.project}: ${one.title}.` }
     }
 
     const found = list.find(item => item.id === id)
@@ -183,7 +184,7 @@ export const register: Register = on => {
         list.map(item => (item.id === found.id ? changed : item)),
       )
 
-      return { result: `Updated ${DOT[changed.color]} #${changed.id} ${changed.project}: ${changed.title}.` }
+      return { result: `Updated #${changed.id} ${changed.project}: ${changed.title}.` }
     }
 
     return { deny: 'Unknown action. Use list, add, update or done.' }
@@ -192,19 +193,14 @@ export const register: Register = on => {
   on('ui.render', { component: 'Pane', requestId: PANE }, async ($, e) => {
     const { Box, Text, Button } = $.ui.resolve(e)
     const list = sorted(await read($, items))
-    const red = list.filter(one => one.color === 'red').length
-    const yellow = list.length - red
 
     return (
       <Box flexDirection="column" gap={1}>
-        <Text dimColor>
-          🔴 {red} need you, 🟡 {yellow} parked
-        </Text>
         {list.length === 0 && <Text>No open work. Everything is done.</Text>}
         {list.map(one => (
           <Box key={`item-${one.id}`} flexDirection="column">
             <Text bold>
-              {DOT[one.color]} {one.project}: {one.title}
+              {one.project}: {one.title}{tag(one)}
             </Text>
             <Text>Next: {one.next}</Text>
             <Box flexDirection="row" gap={1}>
@@ -219,20 +215,6 @@ export const register: Register = on => {
                 }}
               >
                 Done
-              </Button>
-              <Button
-                key={`flip-${one.id}`}
-                plain
-                onPress={async () => {
-                  const now = await load($)
-                  const flipped: ReminderColor = one.color === 'red' ? 'yellow' : 'red'
-                  await save(
-                    $,
-                    now.map(item => (item.id === one.id ? { ...item, color: flipped } : item)),
-                  )
-                }}
-              >
-                {one.color === 'red' ? 'Park it' : 'Make it red'}
               </Button>
             </Box>
           </Box>

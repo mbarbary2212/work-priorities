@@ -32,7 +32,6 @@ test('the pane starts empty and the tool adds, updates and removes items', async
   await $.session.start({ cwd: '/', surface: 'desktop', isInteractive: true })
 
   const empty = await $.ui.mount({ ...PANE, surface: 'desktop' })
-  expect((await empty.find({ type: 'Text', text: /need you/ }))?.text).toBe('🔴 0 need you, 🟡 0 parked')
   expect(await empty.find({ type: 'Text', text: /Everything is done/ })).toBeTruthy()
   await empty.unmount()
 
@@ -43,14 +42,13 @@ test('the pane starts empty and the tool adds, updates and removes items', async
     title: 'Water the plants',
     next: 'Fill the watering can.',
   })
-  expect(added.result).toBe('Added 🔴 #1 Garden: Water the plants.')
+  expect(added.result).toBe('Added #1 Garden: Water the plants.')
 
   const parked = await $.tool.call({ tool: TOOL, action: 'update', id: 1, color: 'yellow' })
-  expect(parked.result).toBe('Updated 🟡 #1 Garden: Water the plants.')
+  expect(parked.result).toBe('Updated #1 Garden: Water the plants.')
 
   const shown = await $.ui.mount({ ...PANE, surface: 'desktop' })
-  expect((await shown.find({ type: 'Text', text: /need you/ }))?.text).toBe('🔴 0 need you, 🟡 1 parked')
-  expect(await shown.find({ type: 'Text', text: /Water the plants/ })).toBeTruthy()
+  expect((await shown.find({ type: 'Text', text: /Water the plants/ }))?.text).toBe('Garden: Water the plants (waiting)')
   await shown.unmount()
 
   const done = await $.tool.call({ tool: TOOL, action: 'done', id: 1 })

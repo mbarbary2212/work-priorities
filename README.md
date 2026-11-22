@@ -1,12 +1,12 @@
 # Work Priorities
 
-A small panel for Claude Code called **My priorities**. It sits beside the chat and lists the things you still have to do, each with a colour dot and its next step, so you do not lose track when you work across many sessions and projects.
+A small panel for Claude Code called **My priorities**. It sits beside the chat and lists the things you still have to do, each with its next step, so you do not lose track when you work across many sessions and projects.
 
 ## What it does
 
-- 🔴 red means you have a step to do. 🟡 yellow means the work is parked or waiting for something.
+- Items you have a step to do come first. Items that are parked or waiting for something are marked **(waiting)**.
 - Each item shows its project, a short title and the next step in one plain sentence.
-- Each item has two buttons: **Done** removes it, **Park it** turns red into yellow (and back).
+- Each item has a **Done** button that removes it. To park an item or bring it back, tell Claude.
 - The list is shared by all your sessions. A change made in one session shows in the others after your next message there.
 - The list starts empty.
 
