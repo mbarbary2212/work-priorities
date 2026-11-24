@@ -245,7 +245,7 @@ export const register: Register = on => {
               {one.project}: {one.title}{tag(one)}
             </Text>
             <Text>Next: {one.next}</Text>
-            {one.where !== undefined && <Text dimColor>Where: {one.where}</Text>}
+            {one.where !== undefined && <Text bold>Where: {one.where}</Text>}
             <Box flexDirection="row" gap={1}>
               <Button
                 key={`done-${one.id}`}
