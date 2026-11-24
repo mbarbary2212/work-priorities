@@ -1,6 +1,6 @@
 {
   "name": "work-priorities",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "A panel beside the chat that lists your priorities and the next step for each.",
   "types": "./types/index.d.ts"
 }

@@ -6,6 +6,7 @@ A small panel for Claude Code called **My priorities**. It sits beside the chat 
 
 - Items you have a step to do come first. Items that are parked or waiting for something are marked **(waiting)**.
 - Each item shows its project, a short title and the next step in one plain sentence.
+- Each item can show a **Where** line: the session, website or app where the work lives.
 - Each item has a **Done** button that removes it. To park an item or bring it back, tell Claude.
 - The list is shared by all your sessions. A change made in one session shows in the others after your next message there.
 - The list starts empty.
@@ -15,7 +16,7 @@ A small panel for Claude Code called **My priorities**. It sits beside the chat 
 - Add an item: tell Claude "remind me to ...".
 - Finish an item: press **Done**, or tell Claude "mark this done".
 - Ask what is open: tell Claude "what am I working on?".
-- Show the panel again: type `/work`.
+- Show the panel again: click the **My priorities** button above the message box (it also counts the items you have a step to do), or type `/work`.
 
 ## Install
 

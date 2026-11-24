@@ -6,6 +6,8 @@ export type Reminder = {
   project: string
   title: string
   next: string
+  /** Where the work lives: a session title, a website, an app. */
+  where?: string
 }
 
 declare module 'claude-code' {

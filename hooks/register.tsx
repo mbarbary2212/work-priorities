@@ -27,7 +27,8 @@ function isReminder(value: unknown): value is Reminder {
     (one.color === 'red' || one.color === 'yellow') &&
     typeof one.project === 'string' &&
     typeof one.title === 'string' &&
-    typeof one.next === 'string'
+    typeof one.next === 'string' &&
+    (one.where === undefined || typeof one.where === 'string')
   )
 }
 
@@ -62,7 +63,11 @@ function asText(list: readonly Reminder[]): string {
   if (list.length === 0) return 'No open work. Everything is done.'
 
   return sorted(list)
-    .map(one => `#${one.id} ${one.project}: ${one.title}${tag(one)}. Next: ${one.next}`)
+    .map(
+      one =>
+        `#${one.id} ${one.project}: ${one.title}${tag(one)}. Next: ${one.next}` +
+        (one.where ? ` Where: ${one.where}` : ''),
+    )
     .join('\n')
 }
 
@@ -73,6 +78,7 @@ type RemindInput = {
   project?: unknown
   title?: unknown
   next?: unknown
+  where?: unknown
 }
 
 const text = (value: unknown): string | undefined =>
@@ -92,7 +98,9 @@ export const register: Register = on => {
         '"this is waiting / parked", "change the next step", or asks "what am I working on" or "what is still open". ' +
         'Actions: "list" shows everything. "add" needs project, title and next (the next step, one plain sentence), ' +
         'and color: "red" when the user has a step to do, "yellow" when it is parked or waiting for something. ' +
-        '"update" needs id and any of color, project, title, next. "done" needs id and removes the item. ' +
+        '"update" needs id and any of color, project, title, next, where. "done" needs id and removes the item. ' +
+        'Always give "where": the place the user goes to do the step, in a few plain words, ' +
+        'e.g. the exact title of the Claude session as it shows in the side menu, or a website or app name. ' +
         'Write title and next in plain English with no jargon. Call "list" first when you need an id.',
       inputSchema: {
         type: 'object',
@@ -103,6 +111,11 @@ export const register: Register = on => {
           project: { type: 'string', description: 'Short project name, e.g. Work, Home, Study.' },
           title: { type: 'string', description: 'A few words naming the work.' },
           next: { type: 'string', description: 'The next step, one plain sentence.' },
+          where: {
+            type: 'string',
+            description:
+              'Where the work lives, e.g. Session "Garden: watering plan", or the bank website.',
+          },
         },
         required: ['action'],
       },
@@ -151,6 +164,7 @@ export const register: Register = on => {
         project,
         title,
         next: step,
+        ...(text(input.where) ? { where: text(input.where) } : {}),
       }
       await save($, [...list, one])
 
@@ -178,6 +192,7 @@ export const register: Register = on => {
         project: text(input.project) ?? found.project,
         title: text(input.title) ?? found.title,
         next: text(input.next) ?? found.next,
+        ...((text(input.where) ?? found.where) ? { where: text(input.where) ?? found.where } : {}),
       }
       await save(
         $,
@@ -188,6 +203,33 @@ export const register: Register = on => {
     }
 
     return { deny: 'Unknown action. Use list, add, update or done.' }
+  })
+
+  // A button above the message box that opens the panel with one click.
+  on('ui.render', { component: 'AbovePrompt' }, async ($, e, next) => {
+    if (e.props.hasSurvey) return next(e)
+
+    // Reading the list here makes the row draw as soon as the session
+    // starts (the list is loaded then), not only after the first message.
+    const todo = (await read($, items)).filter(one => one.color === 'red').length
+    const { Box, Button } = $.ui.resolve(e)
+
+    return (
+      <Box>
+        <Button
+          key="open-priorities"
+          label={todo > 0 ? `${TITLE} (${todo} to do)` : TITLE}
+          onPress={async () => {
+            await load($).catch(() => undefined)
+            // Close first: opening a panel that is already open (but hidden)
+            // does not bring it back into view.
+            await $.ui.close({ id: PANE }).catch(() => undefined)
+            const opened = await $.ui.open({ id: PANE, title: TITLE })
+            if (!opened.isPlaced) $.ui.toast(`My priorities could not open: ${opened.reason}`)
+          }}
+        />
+      </Box>
+    )
   })
 
   on('ui.render', { component: 'Pane', requestId: PANE }, async ($, e) => {
@@ -203,6 +245,7 @@ export const register: Register = on => {
               {one.project}: {one.title}{tag(one)}
             </Text>
             <Text>Next: {one.next}</Text>
+            {one.where !== undefined && <Text dimColor>Where: {one.where}</Text>}
             <Box flexDirection="row" gap={1}>
               <Button
                 key={`done-${one.id}`}
